@@ -93,7 +93,17 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//create session
+	newSession, err := dal.CreateSession(foundUser.Id)
+	if err != nil {
+		http.Error(w, "Unable to login", 400)
+		return
+	}
+
+	retvalJson, _ := json.Marshal(newSession)
 	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, string(retvalJson))
+
 	return
 
 }
