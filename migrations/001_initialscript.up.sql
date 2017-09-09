@@ -10,3 +10,14 @@ CREATE TABLE "sessions"
 "timeCreated" datetime not null,
 foreign key(userid) references users(id)
 );
+
+CREATE TABLE "markers"
+(
+"id" integer primary key autoincrement not null,
+"lat" real not null,
+"lon" real not null,
+"userid" integer not null,
+"text" string not null,
+"timeCreated" datetime not null,
+foreign key(userid) references users(id)
+)

@@ -107,3 +107,29 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	return
 
 }
+
+//places a marker (text owned by a user) at a specific location
+func placeMarkerHandler(w http.ResponseWriter, r *http.Request) {
+
+	var user model.User
+
+	if r.Body == nil {
+		http.Error(w, "Please send a request body", 400)
+		return
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+		return
+	}
+
+	//verify session
+	session,err := dal.
+
+	//place marker
+}
+
+//searches for any markers in the vicinity (default -1 mile)
+func searchLocation(w http.ResponseWriter, r *http.Request) {
+}
