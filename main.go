@@ -21,6 +21,8 @@ func main() {
 	r.HandleFunc("/", helloHandler)
 	r.HandleFunc("/register", registerHandler).Methods("POST")
 	r.HandleFunc("/login", loginHandler).Methods("POST")
+	r.HandleFunc("/marker/create", createMarkerHandler).Methods("POST")
+	r.HandleFunc("/marker/search", searchLocationHandler).Methods("POST")
 
 	http.Handle("/", r)
 
@@ -109,27 +111,75 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 //places a marker (text owned by a user) at a specific location
-func placeMarkerHandler(w http.ResponseWriter, r *http.Request) {
+func createMarkerHandler(w http.ResponseWriter, r *http.Request) {
 
-	var user model.User
+	var createMarker model.CreateMarker
 
 	if r.Body == nil {
 		http.Error(w, "Please send a request body", 400)
 		return
 	}
 
-	err := json.NewDecoder(r.Body).Decode(&user)
+	err := json.NewDecoder(r.Body).Decode(&createMarker)
 	if err != nil {
 		http.Error(w, err.Error(), 400)
 		return
 	}
 
 	//verify session
-	session,err := dal.
+	session, err := dal.GetSessionBySessionId(createMarker.SessionId)
+	if err != nil {
+		http.Error(w, "Invalid Session!", 400)
+		return
+	}
 
 	//place marker
+	newMarker, err := dal.CreateMarker(&createMarker, session.UserId)
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+		return
+	}
+
+	retvalJson, _ := json.Marshal(newMarker)
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, string(retvalJson))
+
+	return
+
 }
 
 //searches for any markers in the vicinity (default -1 mile)
-func searchLocation(w http.ResponseWriter, r *http.Request) {
+func searchLocationHandler(w http.ResponseWriter, r *http.Request) {
+	var searchMarkers model.SearchMarkers
+
+	if r.Body == nil {
+		http.Error(w, "Please send a request body", 400)
+		return
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&searchMarkers)
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+		return
+	}
+
+	//verify session
+	_, err = dal.GetSessionBySessionId(searchMarkers.SessionId)
+	if err != nil {
+		http.Error(w, "Invalid Session!", 400)
+		return
+	}
+
+	markers, err := dal.SearchMarkersByLoc(searchMarkers.Lat, searchMarkers.Lon)
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+		return
+	}
+
+	retvalJson, _ := json.Marshal(markers)
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, string(retvalJson))
+
+	return
+
 }

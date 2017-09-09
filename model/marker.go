@@ -31,10 +31,10 @@ type SearchMarkers struct {
 	Lon       float64
 }
 
-func (dal *ModelDAL) CreateMarker(marker *Marker) (*Marker, error) {
+func (dal *ModelDAL) CreateMarker(marker *CreateMarker, userId int) (*Marker, error) {
 
 	sql := `insert into markers (text,userid,lat,lon,timecreated) values (?,?,?,?,?)`
-	result, err := dal.db.Exec(sql, marker.Text, marker.UserId, marker.Lat, marker.Lon, time.Now())
+	result, err := dal.db.Exec(sql, marker.Text, userId, marker.Lat, marker.Lon, time.Now())
 	if err != nil {
 		log.Print(err)
 		return nil, err
@@ -72,8 +72,8 @@ Longitude: 1 deg = 111.320*cos(latitude) km
 func (dal *ModelDAL) SearchMarkersByLoc(lat, lon float64) ([]*Marker, error) {
 	var retval []*Marker
 
-	sql := `select id,text,userid,lat,lon, timecreated from markers where abs(lat-?) < .001 && abs(lon-?) < .001`
-	err := dal.db.Get(&retval, sql, lat, lon)
+	sql := `select id,text,userid,lat,lon, timecreated from markers where abs(lat-?) < .001 AND abs(lon-?) < .001`
+	err := dal.db.Select(&retval, sql, lat, lon)
 	if err != nil {
 		log.Print(err)
 		return nil, err
